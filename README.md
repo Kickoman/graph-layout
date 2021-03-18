@@ -177,7 +177,7 @@ view.engine()->addImportPath("qrc:///");	// voś hety radok tre' dadać
 #### Pryklad
 
 Vy možacie aznajomicca z prykladam vykarystańnia hetaj biblijateki ŭ
-admyslovym prajekcie pa spasylcy: [graph-layout-gui](https://github.com/Kickoman/graph-layout.gui/).
+admyslovym prajekcie pa spasylcy: [graph-layout-gui](https://github.com/Kickoman/graph-layout-gui/).
 
 ## Dakumentacyja
 
