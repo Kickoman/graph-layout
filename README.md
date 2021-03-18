@@ -1,5 +1,7 @@
 # Graph Layout library
 
+*Bielaruskaja versija nižej*
+
 This library was created for testing different graph layout algorithmes,
 basically the force-based ones. For example, here implemented the
 "Springs and Electrons" algorithm (*i can't remember how it is called for real
@@ -84,3 +86,99 @@ You can check the example project using this library at [graph-layout-gui](https
 ## Documentation
 
 Coming soon.
+
+# Biblijateka pazycyjanavańnia grafaŭ
+
+Hetaja biblijateka byla stvoranaja dlia testavańnia roznych alharytmaŭ
+rysavańnia grafaŭ, a ŭ asnoŭnym -- force-based alharytmaŭ, to-bok tych,
+u jakich vykarystoŭvajecca simuliacyja ŭździejańnia roznych silaŭ na
+eliementy systemy. Napryklad, u hetaj biblijatecy možna znajści
+implementacyju alharytmu "Spružynak i eliektronaŭ" (*ja nia pamiataju
+jahony sapraŭdny nazoŭ*). Tak, heta toj alharytam, dzie my ŭjaŭliajem
+nibyta rebry grafu jość spružynami, a viaršyni grafu jość eliektronami.
+Adpaviedna, zlučanyja viaršyni ciahnucca adna da adnoj, a astatnija --
+adšturchoŭvajucca.
+
+Dlia boĺšaj infarmacyi hliadzi `src/graphcalculator.cpp`. (Spasylki ŭžo chutka buduć)
+
+## Vykarystańnie
+
+### Patrabavańni i zaliežnaści
+
+U biahučy momant biblijateka zaliežyć ad Qt, alie ŭ chutkim časie ja
+źbirajusia pazbavicca hetych zaližnaściaŭ. Hliadzi ŭ **issues** dlia
+boĺšaj infarmacyi.
+
+#### Asnoŭnyja zaliežnaści
+
+Asnoŭnyja zaliežnaści patrebnyja kab sabrać haloŭnuju častku hetaj
+biblijateki.
+
+Zaraz tut apisanyja tyja versii pragram, jakija ja sam vykarystoŭvaŭ
+dlia zborki hetaha prajektu. Jany mohuć nia być minimaĺna patrebnymi
+versijami.
+
+* Systema aŭtamatyzacyi zborki: **Cmake** 3.14
+* **Qt Framework** 5.12
+* C++ kampiliatar z padtrymkaj c++11. Asabista ja testuju na **g++ 9.3.0** i **MSVC 2017**
+
+#### Zaliežnaści QML
+
+Kali vy zachočacie patestavać biblijateku resursaŭ QML dlia rysavańnia
+grafaŭ, vam spatrebiacca hetyja moduli:
+
+* **QtQuick** 2.0
+* **QtQuick.Shapes** 1.12
+* **QtQuick.Models** 2.12
+* **QtQml** 2.0
+
+### Jak vykarystać heta ŭ svaim prajekcie
+
+Zaraz dlia taho, kab dadać hetuju biblijateku ŭ svoj prajekt, vy
+majecie toĺki adzin varyjant raźvićcia padziej: klanujcie (`git clone`)
+hety repazytor (nie zabudźciesia na `--recurse-submodules`) i pieramiaścicie
+jaho ŭ vaš prajekt abo dadajcie hety repazytor jak submoduĺ u repazytor
+vašaha prajektu.
+
+Potym prosta dadajcie radok `add_subdirectory(graph-layout)` da vašaha
+fajla `CMakeLists.txt` i prylinkujcie vaš prajekt da biblijateki
+`graphlayout`.
+
+#### Jak vykarystać biblijateku QML
+
+Dlia prykladnaha adliustravańnia grafu vy možacie vykarystać biblijateku
+QML, jakaja pastaŭliajecca z hetym prajektam. Kab zrabić heta vam
+spačatku treba vykanać kroki, apisanyja vyšej, a potym -- jašče koĺki dziejańniaŭ.
+
+Perš-napierš, hetaja biblijateka vystaŭliaje pieramiennuju CMake `GRAPH_LAYOUT_QML_RESOURCES`.
+Vam treba dadać hetuju pieramiennuju da śpisu fajlaŭ zychodnaha kodu vašaha prajektu jak tut:
+
+```cmake
+
+add_executable(my_very_very_project
+    main.cpp
+    shit.cpp
+    test.cpp
+    ${GRAPH_LAYOUT_QML_RESOURCES}
+)
+```
+
+Taksama vam budzie treba dadać nastupny radok kudyś u svoj kod (niedzie,
+dzie vy pakazvajecie vaš QML):
+
+```cpp
+
+// Napryklad, my vykarystoŭvajem QQuickView
+
+QQuickView view;
+view.engine()->addImportPath("qrc:///");	// voś hety radok tre' dadać
+```
+
+#### Pryklad
+
+Vy možacie aznajomicca z prykladam vykarystańnia hetaj biblijateki ŭ
+admyslovym prajekcie pa spasylcy: [graph-layout-gui](https://github.com/Kickoman/graph-layout.gui/).
+
+## Dakumentacyja
+
+Chutka budzie.
