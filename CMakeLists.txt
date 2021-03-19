@@ -54,4 +54,13 @@ target_link_libraries(${PROJECT_NAME}
     graphgeometry
 )
 
-#initWasmSupport(${PROJECT_NAME} deployWasm.json)
+install(
+    TARGETS graphlayout
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
+
+install(
+    DIRECTORY ${HEADERS_DIR}
+    DESTINATION include
+)
