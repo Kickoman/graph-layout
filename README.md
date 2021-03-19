@@ -1,5 +1,11 @@
 # Graph Layout library
 
+Linux build: ![linux build status](https://github.com/Kickoman/graph-layout/actions/workflows/build_linux.yml/badge.svg)
+
+Windows build: ![windows build status](https://github.com/Kickoman/graph-layout/actions/workflows/build_windows.yml/badge.svg)
+
+## Description
+
 *Bielaruskaja versija nižej*
 
 This library was created for testing different graph layout algorithmes,
