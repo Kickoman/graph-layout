@@ -5,6 +5,10 @@ project(GraphGeometry LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(NOT GRAPH_GEOMETRY_LIB_TYPE)
+    set(GRAPH_GEOMETRY_LIB_TYPE "STATIC")
+endif()
+
 set(HEADERS_DIR include/)
 set(SOURCES_DIR src/)
 
@@ -23,11 +27,5 @@ set(SOURCES
     ${SOURCES_DIR}/point.cpp
 )
 
-if(BUILD_STATIC)
-    set(LIB_TYPE "STATIC")
-else()
-    set(LIB_TYPE "SHARED")
-endif()
-
-add_library(graphgeometry ${HEADERS} ${SOURCES})
+add_library(graphgeometry ${GRAPH_GEOMETRY_LIB_TYPE} ${HEADERS} ${SOURCES})
 target_include_directories(graphgeometry PUBLIC ${HEADERS_DIR})
