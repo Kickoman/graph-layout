@@ -1,0 +1,6 @@
+[submodule "libs/GraphGeometry"]
+	path = libs/GraphGeometry
+	url = git@github.com:Kickoman/graph-geometry.git
+[submodule "libs/kmisc"]
+	path = libs/kmisc
+	url = git@github.com:Kickoman/kmisc.git

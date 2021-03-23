@@ -18,7 +18,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
 
-add_subdirectory(lib)
+add_subdirectory(libs)
 
 set(HEADERS_DIR "include")
 set(SOURCES_DIR "src")

@@ -1,4 +1,0 @@
-[submodule "kfunction"]
-	path = kfunction
-	url = git@github.com:Kickoman/kfunction.git
-	branch = plain-files
