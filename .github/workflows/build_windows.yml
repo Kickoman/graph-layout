@@ -15,7 +15,11 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repository with submodules
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+      
     
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
