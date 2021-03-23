@@ -54,4 +54,10 @@ target_link_libraries(${PROJECT_NAME}
     graphgeometry
 )
 
+set_target_properties(
+    ${PROJECT_NAME} PROPERTIES
+    ENABLE_EXPORTS 1
+    WINDOWS_EXPORT_ALL_SYMBOLS 1
+)
+
 #initWasmSupport(${PROJECT_NAME} deployWasm.json)
