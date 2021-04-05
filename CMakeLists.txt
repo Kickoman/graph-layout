@@ -29,6 +29,7 @@ set(HEADERS
     ${HEADERS_DIR}/graphlineproxymodel.h
     ${HEADERS_DIR}/graphnodesproxymodel.h
     ${HEADERS_DIR}/graphcalculator.h
+    ${HEADERS_DIR}/forcedgraphcalculator.h
 )
 
 set(SOURCES
@@ -36,6 +37,7 @@ set(SOURCES
     ${SOURCES_DIR}/graphnodesproxymodel.cpp
     ${SOURCES_DIR}/graphlayout.cpp
     ${SOURCES_DIR}/graphcalculator.cpp
+    ${SOURCES_DIR}/forcedgraphcalculator.cpp
 )
 
 set(GRAPH_LAYOUT_QML_RESOURCES

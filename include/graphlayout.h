@@ -16,14 +16,12 @@
 class GraphLayout : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString attractiveForce WRITE setAttractiveForce)
-    Q_PROPERTY(QString repulsiveForce WRITE setRepulsiveForce)
     Q_PROPERTY(int nodesCount READ nodesCount NOTIFY modelUpdated)
     Q_PROPERTY(int edgesCount READ edgesCount NOTIFY modelUpdated)
     Q_PROPERTY(QVariant nodesModel READ getNodesModel NOTIFY modelUpdated)
     Q_PROPERTY(QVariant edgesModel READ getEdgesModel NOTIFY modelUpdated)
 public:
-    GraphLayout(IGraph *graph);
+    GraphLayout(PositionedGraph *graph);
 
     ///
     /// \brief Getter for the number of nodes in graph
@@ -39,13 +37,8 @@ public:
     Q_INVOKABLE
     int edgesCount() const;
 
-    ///
-    /// \brief Getter for the node information by its index
-    /// \param index Index of the node
-    /// \return QVariant with the information of the node
-    ///
-    Q_INVOKABLE
     QVariant node(int index) const;
+    QVariant edgeProperties(int index) const;
 
     ///
     /// \brief Getter for the edge by its index
@@ -54,14 +47,6 @@ public:
     ///
     Q_INVOKABLE
     QPair<int, int> edge(int index) const;
-
-    ///
-    /// \brief Getter for the information about the edge
-    /// \param index Index of the edge
-    /// \return QVariant with the information about the edge
-    ///
-    Q_INVOKABLE
-    QVariant edgeProperties(int index) const;
 
     ///
     /// \brief Getter for the X coordinate of the node by its index
@@ -108,26 +93,7 @@ public:
     Q_INVOKABLE
     void setRandomPositions();
 
-    ///
-    /// \brief Setter for Graph Calculator configuration
-    /// \param config new Graph Calculator Configuration
-    ///
-    Q_INVOKABLE
-    void setGraphCalculatorConfig(const GraphCalculatorConfig &config);
-
-    ///
-    /// \brief Setter for the repulsive force between nodes formula
-    /// \param formula QString with the formula in the kFunction format
-    ///
-    Q_INVOKABLE
-    void setRepulsiveForce(const QString &formula);
-
-    ///
-    /// \brief Setter for the attractive force between nodes formula
-    /// \param formula QString with the formula in the kFunction format
-    ///
-    Q_INVOKABLE
-    void setAttractiveForce(const QString &formula);
+    void setGraphCalculator(GraphCalculator *calculator);
 
     ///
     /// \brief Setter for the actual node size (used in calculation algorithm)
@@ -163,7 +129,7 @@ public:
     /// \brief Setter for the graph to be used
     /// \param graph a pointer to a new graph
     ///
-    void setGraph(IGraph *graph);
+    void setGraph(PositionedGraph *graph);
 signals:
     void positionsUpdated();
     void positionUpdated(int nodeIndex);
@@ -173,10 +139,13 @@ private slots:
     void onGraphChanged();
 
 private:
-    mutable QMutex positionsLock;
-    QVector<GraphGeometry::Point> positions;
-    GraphCalculatorConfig config;
-    IGraph *graph;
+    GraphCalculator *calculator;
+    PositionedGraph *graph;
+
+    int nodeWidth = 100;
+    int nodeHeight = 100;
+    int frameWidth = 100;
+    int frameHeight = 100;
 
     QAbstractListModel *nodesModel;
     QAbstractListModel *edgesModel;

@@ -1,15 +1,18 @@
 #ifndef IGRAPH_H
 #define IGRAPH_H
 
-#include <QVariant>
+#include <utility>
+
+#include "variant.h"
+#include "point.h"
 
 ///
 /// \brief Interface for the graph to be used in GraphCalculator
 ///
-class IGraph
+class PositionedGraph
 {
 public:
-    virtual ~IGraph() = default;
+    virtual ~PositionedGraph() = default;
     ///
     /// \brief Getter for the number of available nodes
     /// \return The number of the available nodes
@@ -21,24 +24,25 @@ public:
     ///
     virtual int edgesCount() const = 0;
     ///
-    /// \brief Getter for the information about the node
-    /// \param index Index of the node
-    /// \return QVariant with the information about the node
-    ///
-    virtual QVariant node(int index) const = 0;
-    ///
     /// \brief Getter for the edge by its index
     /// \param index Index of the edge
     /// \return QPair with the start node index and finish node index
     ///
-    virtual QPair<int, int> edge(int index) const = 0;
+    virtual std::pair<int, int> edge(int index) const = 0;
+    virtual PolymorphicTypes::Variant node(int index) const = 0;
+    virtual PolymorphicTypes::Variant edgeProperties(int index) const = 0;
     ///
-    /// \brief Getter for the information about the edge
-    /// \param index Index of the edge
-    /// \return QVariant with the information about the edge
+    /// \brief Getter for the node position
+    /// \param index Index of the node
+    /// \return Point structure with current node position
     ///
-    virtual QVariant edgeProperties(int index) const = 0;
-
+    virtual GraphGeometry::Point nodePosition(int index) const = 0;
+    ///
+    /// \brief Setter for the node position
+    /// \param index Index of the node
+    /// \param position Point structure with new node position
+    ///
+    virtual void setNodePosition(int index, GraphGeometry::Point position) = 0;
     ///
     /// \brief Checks if two nodes are connected with each other
     /// \param a first node index

@@ -1,18 +1,16 @@
 #ifndef GRAPHCALCULATOR_H
 #define GRAPHCALCULATOR_H
 
-#include <QObject>
-#include <QRunnable>
-#include <QMutex>
-#include <QVector>
-#include "point.h"
+#include <functional>
+#include <vector>
+
 #include "igraph.h"
-#include "kfunction.h"
+#include "point.h"
 
 struct GraphCalculatorConfig
 {
-    Function<double> repulsiveForce;
-    Function<double> attractiveForce;
+    std::function<double(double)> repulsiveForce;
+    std::function<double(double)> attractiveForce;
 
     double nodeWidth = 100;
     double nodeHeight = 100;
@@ -21,35 +19,21 @@ struct GraphCalculatorConfig
     double frameHeight = 1000;
 };
 
-
-class GraphCalculator : public QObject, public QRunnable
+class GraphCalculator
 {
-    Q_OBJECT
 public:
-    GraphCalculator(IGraph *graph,
-                    QVector<GraphGeometry::Point> &positions,
-                    QMutex &lock,
-                    GraphCalculatorConfig config);
+    GraphCalculator() = default;
+    GraphCalculator(const GraphCalculatorConfig &config);
 
-    Q_INVOKABLE
-    void run() override;
+    void setConfig(const GraphCalculatorConfig &config);
+    virtual void calculate(PositionedGraph *) = 0;
 
-signals:
-    void updated();
-    void finished();
+    bool isRunning() const;
 
-private:
-    static const double kMinimalTemperature;
-    static const double kTemperatureDecreasingFactor;
-    static const int kDelayUs;
-    static const int kMaxDegrees;
-    static const int kRightAngleDeg;
-    static const int kEdgesRepulsiveDecreasingFactor;
-    static const int kLinesRepulsiveDecreasingFactor;
+protected:
+    bool validateConfig();
 
-    IGraph *graph;
-    QMutex &mutex;
-    QVector<GraphGeometry::Point> &positions;
+    volatile bool running = false;
     GraphCalculatorConfig config;
 };
 

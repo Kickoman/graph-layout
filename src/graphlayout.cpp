@@ -6,13 +6,23 @@
 #endif // DISABLE_THREADS
 #include <QDebug>
 
-GraphLayout::GraphLayout(IGraph *graph)
+QVariant fromPolymorphicVariant(const PolymorphicTypes::Variant &data)
+{
+    switch (data.type())
+    {
+        case PolymorphicTypes::BasicType::Double: return QVariant(data.toDouble());
+        case PolymorphicTypes::BasicType::Float: return QVariant(data.toFloat());
+        case PolymorphicTypes::BasicType::Integer: return QVariant(data.toInt());
+        case PolymorphicTypes::BasicType::String: return QVariant(QString::fromStdString(data.toString()));
+        default: return {};
+    }
+}
+
+GraphLayout::GraphLayout(PositionedGraph *graph)
     : graph(graph)
     , nodesModel(nullptr)
     , edgesModel(nullptr)
-{
-    positions.resize(graph->nodesCount());
-}
+{}
 
 int GraphLayout::nodesCount() const
 {
@@ -26,36 +36,45 @@ int GraphLayout::edgesCount() const
 
 QVariant GraphLayout::node(int index) const
 {
-    return graph->node(index);
-}
+    bool indexOkay = index > -1 && index < nodesCount();
+    if (!indexOkay) return {};
 
-QPair<int, int> GraphLayout::edge(int index) const
-{
-    return graph->edge(index);
+    auto data = graph->node(index);
+    return fromPolymorphicVariant(data);
 }
 
 QVariant GraphLayout::edgeProperties(int index) const
 {
-    return graph->edgeProperties(index);
+    bool indexOkay = index > -1 && index < nodesCount();
+    if (!indexOkay) return {};
+
+    auto data = graph->edgeProperties(index);
+    return fromPolymorphicVariant(data);
+}
+
+QPair<int, int> GraphLayout::edge(int index) const
+{
+    auto edge = graph->edge(index);
+    return qMakePair(edge.first, edge.second);
 }
 
 double GraphLayout::getNodeXPosition(int index) const
 {
     bool indexOkay = index > -1 && index < nodesCount();
-    return indexOkay ? positions[index].x() : -1;
+    return indexOkay ? graph->nodePosition(index).x() : -1;
 }
 
 double GraphLayout::getNodeYPosition(int index) const
 {
     bool indexOkay = index > -1 && index < nodesCount();
-    return indexOkay ? positions[index].y() : -1;
+    return indexOkay ? graph->nodePosition(index).y() : -1;
 }
 
 void GraphLayout::setNodeXPosition(int index, double x)
 {
     if (!qFuzzyCompare(getNodeXPosition(index), x))
     {
-        positions[index] = GraphGeometry::Point(x, getNodeYPosition(index));
+        graph->setNodePosition(index, GraphGeometry::Point(x, getNodeYPosition(index)));
         emit positionUpdated(index);
     }
 }
@@ -64,64 +83,55 @@ void GraphLayout::setNodeYPosition(int index, double y)
 {
     if (!qFuzzyCompare(getNodeYPosition(index), y))
     {
-        positions[index] = GraphGeometry::Point(getNodeXPosition(index), y);
+        graph->setNodePosition(index, GraphGeometry::Point(getNodeXPosition(index), y));
         emit positionUpdated(index);
     }
 }
 
 void GraphLayout::recalculatePositions()
 { 
-    auto *calc = new GraphCalculator(graph, positions, positionsLock, config);
-#ifndef DISABLE_THREADS
-    connect(calc, &GraphCalculator::finished, this, &GraphLayout::positionsUpdated);
-    connect(calc, &GraphCalculator::updated,  this, &GraphLayout::positionsUpdated);
-    calc->setAutoDelete(true);
-    QThreadPool::globalInstance()->start(calc);
-#else
-    calc->run();
-    delete calc;
+    calculator->calculate(graph);
     emit positionsUpdated();
-#endif // DISABLE_THREADS
+//    auto *calc = new GraphCalculator(graph, positions, positionsLock, config);
+//#ifndef DISABLE_THREADS
+//    connect(calc, &GraphCalculator::finished, this, &GraphLayout::positionsUpdated);
+//    connect(calc, &GraphCalculator::updated,  this, &GraphLayout::positionsUpdated);
+//    calc->setAutoDelete(true);
+//    QThreadPool::globalInstance()->start(calc);
+//#else
+//    calc->run();
+//    delete calc;
+//    emit positionsUpdated();
+//#endif // DISABLE_THREADS
 }
 
 void GraphLayout::setRandomPositions()
 {
-    positions.resize(nodesCount());
-    auto area = std::max(config.nodeHeight * nodesCount(), config.nodeWidth * nodesCount());
-    for (auto &pos : positions)
+    auto area = 1000;   // TODO: fix
+    for (int i = 0; i < graph->nodesCount(); ++i)
     {
         double x = rand() % int(area);
         double y = rand() % int(area);
-        pos = GraphGeometry::Point(x, y);
+        graph->setNodePosition(i, GraphGeometry::Point(x, y));
     }
     emit positionsUpdated();
 }
 
-void GraphLayout::setGraphCalculatorConfig(const GraphCalculatorConfig &config)
+void GraphLayout::setGraphCalculator(GraphCalculator *calculator)
 {
-    this->config = config;
-}
-
-void GraphLayout::setRepulsiveForce(const QString &formula)
-{
-    this->config.repulsiveForce = formula.toStdString();
-}
-
-void GraphLayout::setAttractiveForce(const QString &formula)
-{
-    this->config.attractiveForce = formula.toStdString();
+    this->calculator = calculator;
 }
 
 void GraphLayout::setNodeSize(int width, int height)
 {
-    this->config.nodeWidth = width;
-    this->config.nodeHeight = height;
+    this->nodeWidth = width;
+    this->nodeHeight = height;
 }
 
 void GraphLayout::setFrameSize(int width, int height)
 {
-    this->config.frameWidth = width;
-    this->config.frameHeight = height;
+    this->frameWidth = width;
+    this->frameHeight = height;
 }
 
 QVariant GraphLayout::getNodesModel()
@@ -142,7 +152,7 @@ QVariant GraphLayout::getEdgesModel()
     return QVariant::fromValue(edgesModel);
 }
 
-void GraphLayout::setGraph(IGraph *graph)
+void GraphLayout::setGraph(PositionedGraph *graph)
 {
     this->graph = graph;
     emit modelUpdated();
