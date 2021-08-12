@@ -18,7 +18,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core REQUIRED)
 
-add_subdirectory(libs)
+add_subdirectory(libs/kmisc)
+add_subdirectory(libs/GraphGeometry)
 
 set(HEADERS_DIR "include")
 set(SOURCES_DIR "src")
@@ -46,11 +47,10 @@ set(GRAPH_LAYOUT_QML_RESOURCES ${GRAPH_LAYOUT_QML_RESOURCES} PARENT_SCOPE)
 
 add_library(graphlayout ${HEADERS} ${SOURCES} ${GRAPH_LAYOUT_QML_RESOURCES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${HEADERS_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC ${HEADERS_DIR} ${KMISC_INCLUDES})
 
 target_link_libraries(${PROJECT_NAME}
     Qt${QT_VERSION_MAJOR}::Core
-    kmisc
     graphgeometry
 )
 
