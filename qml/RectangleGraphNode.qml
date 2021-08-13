@@ -4,23 +4,26 @@ import "Graph"
 GraphNode {
     id: root
 
-    height: 100
-    width: 250
+    height: 50
+    width: 100
 
     Rectangle {
         anchors.fill: parent
 
-        color: "#1687a7"
+        color: "#E7DFC6"
         radius: 5
+
+        border.color: "#131B23"
 
         Text {
             text: model.data
+            color: "#131B23"
             anchors.fill: parent
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             fontSizeMode: Text.Fit
             minimumPixelSize: 5
-            font.pixelSize: 50
+            font.pixelSize: 14
         }
     }
 }
