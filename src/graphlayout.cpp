@@ -112,6 +112,16 @@ void GraphLayout::setAttractiveForce(const QString &formula)
     this->config.attractiveForce = formula.toStdString();
 }
 
+void GraphLayout::setEdgesRepulsiveForce(const QString &formula)
+{
+    this->config.edgesRepulsiveForce = formula.toStdString();
+}
+
+void GraphLayout::setLinesRepulsiveForce(const QString &formula)
+{
+    this->config.linesRepulsiveForce = formula.toStdString();
+}
+
 void GraphLayout::setNodeSize(int width, int height)
 {
     this->config.nodeWidth = width;

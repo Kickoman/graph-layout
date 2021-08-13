@@ -130,6 +130,20 @@ public:
     void setAttractiveForce(const QString &formula);
 
     ///
+    /// \brief Setter for the repulsive force between nodes and frame edges
+    /// \param formula QString with the formula in the kFunction format
+    ///
+    Q_INVOKABLE
+    void setEdgesRepulsiveForce(const QString &formula);
+
+    ///
+    /// \brief Setter for the repulsive force between nodes and the graph lines (edges)
+    /// \param formula QString with the formula in the kFunction format
+    ///
+    Q_INVOKABLE
+    void setLinesRepulsiveForce(const QString &formula);
+
+    ///
     /// \brief Setter for the actual node size (used in calculation algorithm)
     /// \param width Node width
     /// \param height Node height

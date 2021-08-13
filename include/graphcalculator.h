@@ -13,6 +13,8 @@ struct GraphCalculatorConfig
 {
     Function<double> repulsiveForce;
     Function<double> attractiveForce;
+    Function<double> edgesRepulsiveForce;
+    Function<double> linesRepulsiveForce;
 
     double nodeWidth = 100;
     double nodeHeight = 100;
@@ -44,8 +46,6 @@ private:
     static const int kDelayUs;
     static const int kMaxDegrees;
     static const int kRightAngleDeg;
-    static const int kEdgesRepulsiveDecreasingFactor;
-    static const int kLinesRepulsiveDecreasingFactor;
 
     IGraph *graph;
     QMutex &mutex;

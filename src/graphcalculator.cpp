@@ -19,8 +19,6 @@ const double GraphCalculator::kTemperatureDecreasingFactor(1.01);
 const int GraphCalculator::kDelayUs(50000);
 const int GraphCalculator::kMaxDegrees(360);
 const int GraphCalculator::kRightAngleDeg(90);
-const int GraphCalculator::kEdgesRepulsiveDecreasingFactor(7);
-const int GraphCalculator::kLinesRepulsiveDecreasingFactor(10);
 
 GraphCalculator::GraphCalculator(IGraph *graph,
                                  QVector<GraphGeometry::Point> &positions,
@@ -145,13 +143,13 @@ void GraphCalculator::run()
                 auto distance = forceDirectionVector.magnitude();
                 if (qFuzzyCompare(distance, 0))
                 {
-                    distance = static_cast<double>(INT_MAX);
+                    distance = static_cast<double>(0);
                     forceDirectionVector = GraphGeometry::TwoDVector(1, 0).rotateDeg(rand() % kMaxDegrees);
                 }
                 else
                     forceDirectionVector = forceDirectionVector / forceDirectionVector.magnitude();
 
-                auto forceScalar = config.repulsiveForce(distance) / kLinesRepulsiveDecreasingFactor;
+                auto forceScalar = config.linesRepulsiveForce(distance);
                 if (qIsNaN(forceScalar) || qIsInf(forceScalar))
                     forceScalar = static_cast<double>(INT_MAX);
                 auto forceVector = forceDirectionVector * forceScalar;
@@ -164,7 +162,7 @@ void GraphCalculator::run()
             = [this](double distance, GraphGeometry::TwoDVector direction) -> GraphGeometry::TwoDVector {
             if (qFuzzyCompare(distance, 0))
                 distance = static_cast<double>(INT_MAX);
-            auto forceScalar = config.repulsiveForce(distance) / kEdgesRepulsiveDecreasingFactor;
+            auto forceScalar = config.edgesRepulsiveForce(distance);
             if (qIsNaN(forceScalar) || qIsInf(forceScalar))
                 forceScalar = static_cast<double>(INT_MAX);
             return direction / direction.magnitude() * forceScalar;
