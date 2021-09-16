@@ -6,7 +6,9 @@ include($$PWD/libs/GraphGeometry/GraphGeometry.pri)
 include($$PWD/libs/kmisc/kmisc.pri)
 
 #include qml
-RESOURCES += $$PWD/graph-layout-qml.qrc
+RESOURCES +=    \
+    $$PWD/graph-layout-qml.qrc  \
+    $$PWD/graph-layout-assets.qrc
 
 INCLUDEPATH += $$PWD/include
 
