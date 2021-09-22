@@ -8,11 +8,11 @@
 #include <chrono>
 #include <utility>
 
-#include "twodvector.h"
-#include "section.h"
-#include "line.h"
+#include "2d/vector.h"
+#include "2d/section.h"
+#include "2d/line.h"
 
-Q_DECLARE_TYPEINFO(GraphGeometry::TwoDVector, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(GraphGeometry::D2::Vector, Q_MOVABLE_TYPE);
 
 const double GraphCalculator::kMinimalTemperature(10);
 const double GraphCalculator::kTemperatureDecreasingFactor(1.01);
@@ -21,7 +21,7 @@ const int GraphCalculator::kMaxDegrees(360);
 const int GraphCalculator::kRightAngleDeg(90);
 
 GraphCalculator::GraphCalculator(IGraph *graph,
-                                 QVector<GraphGeometry::Point> &positions,
+                                 QVector<GraphGeometry::D2::Point> &positions,
                                  QMutex &lock,
                                  GraphCalculatorConfig config)
     : graph(graph)
@@ -41,7 +41,7 @@ void GraphCalculator::run()
         QMutexLocker lock(&mutex);
 
         const int NODES_COUNT = graph->nodesCount();
-        QVector<GraphGeometry::TwoDVector> forces(NODES_COUNT, {0, 0});
+        QVector<GraphGeometry::D2::Vector> forces(NODES_COUNT, {0, 0});
 
         // Repulsive forces between each pair of vertices
         for (int targetNode = 0; targetNode < NODES_COUNT; ++targetNode)
@@ -55,7 +55,7 @@ void GraphCalculator::run()
                 // Direction vector should be directed FROM other node,
                 // because this is the repulsive force, so it should
                 // move target node onto a larger distance from other node.
-                auto directionVector = GraphGeometry::TwoDVector(itPosition, myPosition);
+                auto directionVector = GraphGeometry::D2::Vector(itPosition, myPosition);
                 auto distance = directionVector.magnitude();
                 if (qFuzzyCompare(distance, 0))
                     distance = static_cast<double>(INT_MAX);
@@ -75,15 +75,15 @@ void GraphCalculator::run()
             auto position1 = positions.at(currentEdge.first);
             auto position2 = positions.at(currentEdge.second);
 
-            auto directionVector1 = GraphGeometry::TwoDVector(position1, position2);
-            auto directionVector2 = GraphGeometry::TwoDVector(position2, position1);
+            auto directionVector1 = GraphGeometry::D2::Vector(position1, position2);
+            auto directionVector2 = GraphGeometry::D2::Vector(position2, position1);
             auto distance = directionVector1.magnitude();
 
             if (qFuzzyCompare(distance, 0))
             {
                 distance = static_cast<double>(INT_MAX);
-                directionVector1 = GraphGeometry::TwoDVector(1, 0).rotateDeg(rand() % kMaxDegrees);
-                directionVector2 = GraphGeometry::TwoDVector(1, 0).rotateDeg(rand() % kMaxDegrees);
+                directionVector1 = GraphGeometry::D2::Vector(1, 0).rotateDeg(rand() % kMaxDegrees);
+                directionVector2 = GraphGeometry::D2::Vector(1, 0).rotateDeg(rand() % kMaxDegrees);
             }
             else
             {
@@ -103,11 +103,11 @@ void GraphCalculator::run()
         }
 
         // Compute repulsive forces from edges
-        auto nearestPoint = [](const GraphGeometry::Section &section, GraphGeometry::Point point) -> GraphGeometry::Point {
-            GraphGeometry::TwoDVector direction(section.start(), section.end());
+        auto nearestPoint = [](const GraphGeometry::D2::Section &section, GraphGeometry::D2::Point point) -> GraphGeometry::D2::Point {
+            GraphGeometry::D2::Vector direction(section.start(), section.end());
             direction = direction.rotateDeg(kRightAngleDeg);
-            GraphGeometry::Line perpendicular(point, direction);
-            GraphGeometry::Line mainLIne(section.start(), section.end());
+            GraphGeometry::D2::Line perpendicular(point, direction);
+            GraphGeometry::D2::Line mainLIne(section.start(), section.end());
 
             bool intersects = false;
             auto intersection = perpendicular.intersection(mainLIne, &intersects);
@@ -118,8 +118,8 @@ void GraphCalculator::run()
             if (section.has(intersection))
                 return intersection;
 
-            GraphGeometry::TwoDVector checkStart(point, section.start());
-            GraphGeometry::TwoDVector checkEnd(point, section.end());
+            GraphGeometry::D2::Vector checkStart(point, section.start());
+            GraphGeometry::D2::Vector checkEnd(point, section.end());
 
             if (checkStart.magnitude() < checkEnd.magnitude())
                 return section.start();
@@ -136,15 +136,15 @@ void GraphCalculator::run()
 
                 auto sectionStart = positions.at(edge.first);
                 auto sectionEnd = positions.at(edge.second);
-                GraphGeometry::Section section(sectionStart, sectionEnd);
+                GraphGeometry::D2::Section section(sectionStart, sectionEnd);
                 auto point = nearestPoint(section, nodePosition);
 
-                GraphGeometry::TwoDVector forceDirectionVector(point, nodePosition);
+                GraphGeometry::D2::Vector forceDirectionVector(point, nodePosition);
                 auto distance = forceDirectionVector.magnitude();
                 if (qFuzzyCompare(distance, 0))
                 {
                     distance = static_cast<double>(0);
-                    forceDirectionVector = GraphGeometry::TwoDVector(1, 0).rotateDeg(rand() % kMaxDegrees);
+                    forceDirectionVector = GraphGeometry::D2::Vector(1, 0).rotateDeg(rand() % kMaxDegrees);
                 }
                 else
                     forceDirectionVector = forceDirectionVector / forceDirectionVector.magnitude();
@@ -159,7 +159,7 @@ void GraphCalculator::run()
 
         // Compute repulsive forces from frame edges`
         auto computeForce
-            = [this](double distance, GraphGeometry::TwoDVector direction) -> GraphGeometry::TwoDVector {
+            = [this](double distance, GraphGeometry::D2::Vector direction) -> GraphGeometry::D2::Vector {
             if (qFuzzyCompare(distance, 0))
                 distance = static_cast<double>(INT_MAX);
             auto forceScalar = config.edgesRepulsiveForce(distance);
@@ -190,7 +190,7 @@ void GraphCalculator::run()
             y = std::max(config.nodeHeight / 2, y);
             y = std::min(config.frameHeight - config.nodeHeight / 2, y);
 
-            positions[node] = GraphGeometry::Point(x, y);
+            positions[node] = GraphGeometry::D2::Point(x, y);
         }
 
         lock.unlock();

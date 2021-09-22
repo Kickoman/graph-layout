@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QVector>
-#include "point.h"
+#include "2d/point.h"
 #include <QMutex>
 #include <QAbstractListModel>
 #include "igraph.h"
@@ -188,7 +188,7 @@ private slots:
 
 private:
     mutable QMutex positionsLock;
-    QVector<GraphGeometry::Point> positions;
+    QVector<GraphGeometry::D2::Point> positions;
     GraphCalculatorConfig config;
     IGraph *graph;
 
