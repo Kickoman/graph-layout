@@ -1,18 +1,17 @@
 #include "graphcalculator.h"
-#include <array>
+#include "2d/point.h"
+#include <cmath>
+#include <cstdlib>
 #define _USE_MATH_DEFINES
 #include <math.h>
-#include <QDebug>
 #include <thread>
-#include <QThread>
 #include <chrono>
 #include <utility>
+#include <limits>
 
 #include "2d/vector.h"
 #include "2d/section.h"
 #include "2d/line.h"
-
-Q_DECLARE_TYPEINFO(GraphGeometry::D2::Vector, Q_MOVABLE_TYPE);
 
 const double GraphCalculator::kMinimalTemperature(10);
 const double GraphCalculator::kTemperatureDecreasingFactor(1.01);
@@ -20,48 +19,66 @@ const int GraphCalculator::kDelayUs(50000);
 const int GraphCalculator::kMaxDegrees(360);
 const int GraphCalculator::kRightAngleDeg(90);
 
-GraphCalculator::GraphCalculator(IGraph *graph,
-                                 QVector<GraphGeometry::D2::Point> &positions,
-                                 QMutex &lock,
-                                 GraphCalculatorConfig config)
+template<class X>
+bool fuzzyCompare(const X a, const X b) {
+    constexpr auto relativeDifferenceFactor = 0.0001;
+    const auto greaterMagnitude = std::max(std::abs(a), std::abs(b));
+    return std::abs(a - b) <= relativeDifferenceFactor * greaterMagnitude;
+}
+
+GraphCalculator::GraphCalculator(TGraph *graph, GraphCalculatorConfig config)
     : graph(graph)
-    , mutex(lock)
-    , positions(positions)
     , config(std::move(config))
-{
+    , stopRequested(false)
+{}
+
+void GraphCalculator::setGraph(TGraph *graph) {
+    this->graph = graph;
+}
+
+void GraphCalculator::setConfig(GraphCalculatorConfig config) {
+    this->config = std::move(config);
+}
+
+void GraphCalculator::requestStop() {
+    stopRequested.store(true);
 }
 
 void GraphCalculator::run()
 {
+    stopRequested.store(false);
     double temperature = sqrt(config.frameHeight * config.frameHeight
                               + config.frameWidth * config.frameWidth);
 
-    while (temperature > kMinimalTemperature)
+    const int nodesCount = graph->nodesCount();
+    std::vector<GraphGeometry::D2::Vector> forces(nodesCount);
+    while (temperature > kMinimalTemperature && !stopRequested.load())
     {
-        QMutexLocker lock(&mutex);
-
-        const int NODES_COUNT = graph->nodesCount();
-        QVector<GraphGeometry::D2::Vector> forces(NODES_COUNT, {0, 0});
+        std::fill(forces.begin(), forces.end(), GraphGeometry::D2::Vector(0, 0));
 
         // Repulsive forces between each pair of vertices
+        const int NODES_COUNT = graph->nodesCount();
         for (int targetNode = 0; targetNode < NODES_COUNT; ++targetNode)
         {
             for (int otherNode = 0; otherNode < NODES_COUNT; ++otherNode)
             {
                 if (targetNode == otherNode) continue;
 
-                auto myPosition = positions.at(targetNode);
-                auto itPosition = positions.at(otherNode);
+                const auto myPosition = graph->nodePosition(targetNode);
+                const auto itPosition = graph->nodePosition(otherNode);
+
                 // Direction vector should be directed FROM other node,
                 // because this is the repulsive force, so it should
                 // move target node onto a larger distance from other node.
                 auto directionVector = GraphGeometry::D2::Vector(itPosition, myPosition);
                 auto distance = directionVector.magnitude();
-                if (qFuzzyCompare(distance, 0))
-                    distance = static_cast<double>(INT_MAX);
+                if (fuzzyCompare(distance, 0.)) {
+                    distance = std::numeric_limits<int>::max();
+                }
                 auto forceScalar = config.repulsiveForce(distance);
-                if (qIsNaN(forceScalar) || qIsInf(forceScalar))
-                    forceScalar = static_cast<double>(INT_MAX); // some big value
+                if (std::isnan(forceScalar) || std::isinf(forceScalar)) {
+                    forceScalar = std::numeric_limits<int>::max();
+                }
                 auto forceVector = directionVector / distance * forceScalar;
                 forces[targetNode] += forceVector;
             }
@@ -72,16 +89,17 @@ void GraphCalculator::run()
         for (int targetEdge = 0; targetEdge < EDGES_COUNT; ++targetEdge)
         {
             auto currentEdge = graph->edge(targetEdge);
-            auto position1 = positions.at(currentEdge.first);
-            auto position2 = positions.at(currentEdge.second);
+
+            const auto position1 = graph->nodePosition(currentEdge.first);
+            const auto position2 = graph->nodePosition(currentEdge.second);
 
             auto directionVector1 = GraphGeometry::D2::Vector(position1, position2);
             auto directionVector2 = GraphGeometry::D2::Vector(position2, position1);
             auto distance = directionVector1.magnitude();
 
-            if (qFuzzyCompare(distance, 0))
+            if (fuzzyCompare(distance, 0.))
             {
-                distance = static_cast<double>(INT_MAX);
+                distance = std::numeric_limits<int>::max();
                 directionVector1 = GraphGeometry::D2::Vector(1, 0).rotateDeg(rand() % kMaxDegrees);
                 directionVector2 = GraphGeometry::D2::Vector(1, 0).rotateDeg(rand() % kMaxDegrees);
             }
@@ -92,11 +110,11 @@ void GraphCalculator::run()
             }
 
             auto forceScalar = config.attractiveForce(distance);
-            if (qIsNaN(forceScalar) || qIsInf(forceScalar))
-                forceScalar = static_cast<double>(INT_MAX);
+            if (std::isnan(forceScalar) || std::isinf(forceScalar))
+                forceScalar = std::numeric_limits<int>::max();
 
-            auto forceVector1 = directionVector1 * forceScalar;
-            auto forceVector2 = directionVector2 * forceScalar;
+            const auto forceVector1 = directionVector1 * forceScalar;
+            const auto forceVector2 = directionVector2 * forceScalar;
 
             forces[currentEdge.first] += forceVector1;
             forces[currentEdge.second] += forceVector2;
@@ -128,30 +146,30 @@ void GraphCalculator::run()
 
         for (int targetNode = 0; targetNode < NODES_COUNT; ++targetNode)
         {
-            auto nodePosition = positions.at(targetNode);
+            const auto nodePosition = graph->nodePosition(targetNode);
             for (int targetEdge = 0; targetEdge < EDGES_COUNT; ++targetEdge)
             {
                 auto edge = graph->edge(targetEdge);
                 if (targetNode == edge.first || targetNode == edge.second) continue;
 
-                auto sectionStart = positions.at(edge.first);
-                auto sectionEnd = positions.at(edge.second);
+                const auto sectionStart = graph->nodePosition(edge.first);
+                const auto sectionEnd = graph->nodePosition(edge.second);
                 GraphGeometry::D2::Section section(sectionStart, sectionEnd);
                 auto point = nearestPoint(section, nodePosition);
 
                 GraphGeometry::D2::Vector forceDirectionVector(point, nodePosition);
                 auto distance = forceDirectionVector.magnitude();
-                if (qFuzzyCompare(distance, 0))
+                if (fuzzyCompare(distance, 0.))
                 {
-                    distance = static_cast<double>(0);
+                    distance = 0.0;
                     forceDirectionVector = GraphGeometry::D2::Vector(1, 0).rotateDeg(rand() % kMaxDegrees);
                 }
                 else
                     forceDirectionVector = forceDirectionVector / forceDirectionVector.magnitude();
 
                 auto forceScalar = config.linesRepulsiveForce(distance);
-                if (qIsNaN(forceScalar) || qIsInf(forceScalar))
-                    forceScalar = static_cast<double>(INT_MAX);
+                if (std::isnan(forceScalar) || std::isinf(forceScalar))
+                    forceScalar = std::numeric_limits<int>::max();
                 auto forceVector = forceDirectionVector * forceScalar;
                 forces[targetNode] += forceVector;
             }
@@ -160,16 +178,16 @@ void GraphCalculator::run()
         // Compute repulsive forces from frame edges`
         auto computeForce
             = [this](double distance, GraphGeometry::D2::Vector direction) -> GraphGeometry::D2::Vector {
-            if (qFuzzyCompare(distance, 0))
-                distance = static_cast<double>(INT_MAX);
+            if (fuzzyCompare(distance, 0.))
+                distance = std::numeric_limits<int>::max();
             auto forceScalar = config.edgesRepulsiveForce(distance);
-            if (qIsNaN(forceScalar) || qIsInf(forceScalar))
-                forceScalar = static_cast<double>(INT_MAX);
+            if (std::isnan(forceScalar) || std::isinf(forceScalar))
+                forceScalar = std::numeric_limits<int>::max();
             return direction / direction.magnitude() * forceScalar;
         };
         for (int targetNode = 0; targetNode < NODES_COUNT; ++targetNode)
         {
-            auto pos = positions.at(targetNode);
+            const auto pos = graph->nodePosition(targetNode);
             forces[targetNode] += computeForce(pos.y(), {0, 1});                        // from top
             forces[targetNode] += computeForce(config.frameHeight - pos.y(), {0, -1});  // from bottom
             forces[targetNode] += computeForce(pos.x(), {1, 0});                        // from left
@@ -179,8 +197,8 @@ void GraphCalculator::run()
         // Apply forces to nodes
         for (int node = 0; node < NODES_COUNT; ++node)
         {
-            double x = positions.at(node).x();
-            double y = positions.at(node).y();
+            double x = graph->nodePosition(node).x();
+            double y = graph->nodePosition(node).y();
 
             x += std::min(temperature, forces.at(node).x());
             y += std::min(temperature, forces.at(node).y());
@@ -190,15 +208,14 @@ void GraphCalculator::run()
             y = std::max(config.nodeHeight / 2, y);
             y = std::min(config.frameHeight - config.nodeHeight / 2, y);
 
-            positions[node] = GraphGeometry::D2::Point(x, y);
+            graph->setNodePosition(node, GraphGeometry::D2::Point(x, y));
         }
 
-        lock.unlock();
-#ifndef WASM_BUILD
-        emit updated();
-        QThread::usleep(kDelayUs);
-#endif // WASM_BUILD
+        graph->flush();
+        if (config.enableThrottling) {
+            std::this_thread::sleep_for(std::chrono::microseconds(kDelayUs));
+        }
+
         temperature /= kTemperatureDecreasingFactor;
     }
-    emit finished();
 }

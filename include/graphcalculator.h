@@ -1,13 +1,10 @@
 #ifndef GRAPHCALCULATOR_H
 #define GRAPHCALCULATOR_H
 
-#include <QObject>
-#include <QRunnable>
-#include <QMutex>
-#include <QVector>
 #include "2d/point.h"
 #include "igraph.h"
 #include "kfunction.h"
+#include <atomic>
 
 struct GraphCalculatorConfig
 {
@@ -21,24 +18,23 @@ struct GraphCalculatorConfig
 
     double frameWidth = 1000;
     double frameHeight = 1000;
+
+    bool enableThrottling = true;
 };
 
 
-class GraphCalculator : public QObject, public QRunnable
+class GraphCalculator
 {
-    Q_OBJECT
 public:
-    GraphCalculator(IGraph *graph,
-                    QVector<GraphGeometry::D2::Point> &positions,
-                    QMutex &lock,
-                    GraphCalculatorConfig config);
+    using TPoint = GraphGeometry::D2::Point;
+    using TGraph = IGraph<TPoint>;
 
-    Q_INVOKABLE
-    void run() override;
-
-signals:
-    void updated();
-    void finished();
+    GraphCalculator() = default;
+    GraphCalculator(TGraph *graph, GraphCalculatorConfig config);
+    void setGraph(TGraph *graph);
+    void setConfig(GraphCalculatorConfig config);
+    void run();
+    void requestStop();
 
 private:
     static const double kMinimalTemperature;
@@ -47,10 +43,9 @@ private:
     static const int kMaxDegrees;
     static const int kRightAngleDeg;
 
-    IGraph *graph;
-    QMutex &mutex;
-    QVector<GraphGeometry::D2::Point> &positions;
+    TGraph *graph = nullptr;
     GraphCalculatorConfig config;
+    std::atomic<bool> stopRequested;
 };
 
 #endif // GRAPHCALCULATOR_H
