@@ -39,14 +39,8 @@ set(SOURCES
     ${SOURCES_DIR}/graphcalculator.cpp
 )
 
-set(GRAPH_LAYOUT_QML_RESOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/graph-layout-qml.qrc
-    ${CMAKE_CURRENT_SOURCE_DIR}/graph-layout-assets.qrc
-)
 
-set(GRAPH_LAYOUT_QML_RESOURCES ${GRAPH_LAYOUT_QML_RESOURCES} PARENT_SCOPE)
-
-add_library(graphlayout ${HEADERS} ${SOURCES} ${GRAPH_LAYOUT_QML_RESOURCES})
+add_library(graphlayout ${HEADERS} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${HEADERS_DIR} ${KMISC_INCLUDES})
 

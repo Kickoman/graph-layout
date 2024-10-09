@@ -1,6 +1,0 @@
-module GraphLayout
-GraphNode 1.0 qml/Graph/GraphNode.qml
-GraphLine 1.0 qml/Graph/GraphLine.qml
-GraphView 1.0 qml/Graph/GraphView.qml
-RoundGraphNode 1.0 qml/RoundGraphNode.qml
-RectangleGraphNode 1.0 qml/RectangleGraphNode.qml
