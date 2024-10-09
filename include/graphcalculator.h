@@ -5,6 +5,7 @@
 #include "igraph.h"
 #include "kfunction.h"
 #include <atomic>
+#include <memory>
 
 struct GraphCalculatorConfig
 {
@@ -28,10 +29,11 @@ class GraphCalculator
 public:
     using TPoint = GraphGeometry::D2::Point;
     using TGraph = IGraph<TPoint>;
+    using TGraphPtr = std::shared_ptr<TGraph>;
 
     GraphCalculator() = default;
-    GraphCalculator(TGraph *graph, GraphCalculatorConfig config);
-    void setGraph(TGraph *graph);
+    GraphCalculator(const TGraphPtr &graph, GraphCalculatorConfig config);
+    void setGraph(const TGraphPtr &graph);
     void setConfig(GraphCalculatorConfig config);
     void run();
     void requestStop();
@@ -43,7 +45,7 @@ private:
     static const int kMaxDegrees;
     static const int kRightAngleDeg;
 
-    TGraph *graph = nullptr;
+    TGraphPtr graph;
     GraphCalculatorConfig config;
     std::atomic<bool> stopRequested;
 };

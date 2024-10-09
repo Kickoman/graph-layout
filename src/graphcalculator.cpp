@@ -26,13 +26,13 @@ bool fuzzyCompare(const X a, const X b) {
     return std::abs(a - b) <= relativeDifferenceFactor * greaterMagnitude;
 }
 
-GraphCalculator::GraphCalculator(TGraph *graph, GraphCalculatorConfig config)
+GraphCalculator::GraphCalculator(const TGraphPtr &graph, GraphCalculatorConfig config)
     : graph(graph)
     , config(std::move(config))
     , stopRequested(false)
 {}
 
-void GraphCalculator::setGraph(TGraph *graph) {
+void GraphCalculator::setGraph(const TGraphPtr &graph) {
     this->graph = graph;
 }
 
